@@ -37,7 +37,7 @@ const CardTitle = React.forwardRef<
     )}
     {...props}
   >
-    {children}
+    {children || <span className="sr-only">Card title</span>}
   </h3>
 ))
 CardTitle.displayName = "CardTitle"

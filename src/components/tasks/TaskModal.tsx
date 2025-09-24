@@ -6,7 +6,6 @@ import { Label } from 'components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from 'components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from 'components/ui/card';
 import { Task, User, CreateTaskData, UpdateTaskData } from 'types';
-import { apiService } from 'services/api';
 import { X, Loader2 } from 'lucide-react';
 
 interface TaskModalProps {
@@ -46,7 +45,6 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const assigneeId = watch('assigneeId');
   
   // Role-based permissions - allow all users to assign to others per requirements
-  const isAdmin = currentUser?.role === 'admin';
   const canAssignToOthers = true; // Allow all users to assign tasks to any user
   
   
