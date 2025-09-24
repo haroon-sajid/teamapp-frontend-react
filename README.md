@@ -164,16 +164,44 @@ The app uses WebSocket connections for real-time updates:
 
 ## Production Deployment
 
-1. **Build the project**
-   ```bash
-   npm run build
+### Automatic Deployment with Vercel
+
+This project is configured for automatic deployment to Vercel when you push changes to GitHub.
+
+#### Setup Instructions:
+
+1. **Connect to Vercel**:
+   - Go to [vercel.com](https://vercel.com) and sign up/login
+   - Click "New Project"
+   - Import your GitHub repository
+   - Vercel will automatically detect this is a React app
+
+2. **Configure Environment Variables**:
+   In your Vercel dashboard, go to Project Settings → Environment Variables and add:
+   ```
+   REACT_APP_API_BASE_URL = your-backend-api-url
+   REACT_APP_WS_URL = your-websocket-url
    ```
 
-2. **Deploy the `build` folder** to your hosting service
+3. **Deploy**:
+   - Vercel will automatically build and deploy your app
+   - You'll get a live URL (e.g., `https://your-app.vercel.app`)
 
-3. **Environment Variables** (if needed):
-   - `REACT_APP_API_URL`: Backend API URL
-   - `REACT_APP_WS_URL`: WebSocket server URL
+#### Automatic Deployment:
+- ✅ **Every push to `main` branch** → Automatic production deployment
+- ✅ **Every pull request** → Preview deployment
+- ✅ **Zero configuration** → Uses existing `vercel.json`
+
+#### Manual Deployment:
+If you need to deploy manually:
+```bash
+npm run build
+# Deploy the 'build' folder to your hosting service
+```
+
+#### Environment Variables:
+- `REACT_APP_API_BASE_URL`: Backend API URL
+- `REACT_APP_WS_URL`: WebSocket server URL
 
 ## Contributing
 
