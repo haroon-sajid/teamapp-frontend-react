@@ -10,15 +10,28 @@ const getEnv = (key: string, fallback: string): string => {
 
 // utils/constants.ts
 
+// export const API_BASE_URL = getEnv(
+//   "REACT_APP_API_BASE_URL",
+//   "http://localhost:8000"
+// );
+
+// export const WS_BASE_URL = getEnv(
+//   "REACT_APP_WS_URL",
+//   "ws://localhost:3001"
+// );
+
+
+
 export const API_BASE_URL = getEnv(
   "REACT_APP_API_BASE_URL",
-  "http://localhost:8000"
+  "https://web-production-3f101.up.railway.app"
 );
 
 export const WS_BASE_URL = getEnv(
   "REACT_APP_WS_URL",
-  "ws://localhost:3001"
+  "wss://web-production-3f101.up.railway.app"
 );
+
 
 export const KANBAN_COLUMNS = [
   {
