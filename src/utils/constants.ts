@@ -8,8 +8,17 @@ const getEnv = (key: string, fallback: string): string => {
   return (viteVal as string | undefined) || craVal || fallback;
 };
 
-export const API_BASE_URL = getEnv('REACT_APP_API_BASE_URL', 'http://localhost:8000');
-export const WS_BASE_URL = getEnv('REACT_APP_WS_URL', 'ws://localhost:3001');
+// utils/constants.ts
+
+export const API_BASE_URL = getEnv(
+  "REACT_APP_API_BASE_URL",
+  "https://teamapp-backend-python-1.onrender.com" // ✅ fallback for prod
+);
+
+export const WS_BASE_URL = getEnv(
+  "REACT_APP_WS_URL",
+  "wss://web-production-3f101.up.railway.app" // ✅ fallback for prod
+);
 
 export const KANBAN_COLUMNS = [
   {
