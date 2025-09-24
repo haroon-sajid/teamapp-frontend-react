@@ -188,9 +188,9 @@ This project is configured for automatic deployment to Vercel when you push chan
    - You'll get a live URL (e.g., `https://your-app.vercel.app`)
 
 #### Automatic Deployment:
-- ✅ **Every push to `main` branch** → Automatic production deployment
-- ✅ **Every pull request** → Preview deployment
-- ✅ **Zero configuration** → Uses existing `vercel.json`
+-  **Every push to `main` branch** → Automatic production deployment
+-  **Every pull request** → Preview deployment
+-  **Zero configuration** → Uses existing `vercel.json`
 
 #### Manual Deployment:
 If you need to deploy manually:
