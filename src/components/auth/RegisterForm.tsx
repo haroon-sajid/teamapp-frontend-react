@@ -16,7 +16,6 @@ const RegisterForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const { register: registerUser } = useAuth();
   const navigate = useNavigate();
   
   const {

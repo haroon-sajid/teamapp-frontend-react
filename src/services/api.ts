@@ -1,3 +1,4 @@
+
 import {
   ApiResponse,
   User,
@@ -10,19 +11,13 @@ import {
   CreateTeamData,
   TeamMember
 } from 'types';
+// import { API_BASE_URL, STORAGE_KEYS } from 'utils/constants';
 
-// 🔹 Dynamic backend URL detection
-const isLocalhost = window.location.hostname === "localhost";
-export const API_BASE_URL = isLocalhost
-  ? "http://localhost:8000" // Local FastAPI
-  : "https://teamapp-backend-python-1.onrender.com"; // Render backend
+import { STORAGE_KEYS } from "utils/constants";
 
-// 🔹 Storage keys
-export const STORAGE_KEYS = {
-  AUTH_TOKEN: "auth_token",
-  REFRESH_TOKEN: "refresh_token",
-  USER_DATA: "user_data",
-};
+// ✅ Use environment variable with safe fallback for development
+import { API_BASE_URL } from 'utils/constants';
+
 
 class ApiService {
   private baseURL: string;
@@ -51,7 +46,7 @@ class ApiService {
 
     const config: RequestInit = {
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...(token && !skipAuth && { Authorization: `Bearer ${token}` }),
         ...options.headers,
       },
@@ -60,44 +55,40 @@ class ApiService {
 
     try {
       const response = await fetch(`${this.baseURL}${endpoint}`, config);
-      const contentType = response.headers.get("content-type") || "";
-      const isJson = contentType.includes("application/json");
-      const raw = isJson ? await response.json() : await response.text();
+      const contentType = response.headers.get('content-type') || '';
+      const isJson = contentType.includes('application/json');
+      const raw = isJson ? await response.json() : (await response.text());
 
       if (!response.ok) {
-        if (
-          response.status === 401 &&
-          !isRetry &&
-          !skipAuth &&
-          endpoint !== "/auth/refresh"
-        ) {
-          console.log("Token expired, attempting refresh...");
+        // Handle 401 Unauthorized - attempt token refresh
+        if (response.status === 401 && !isRetry && !skipAuth && endpoint !== '/auth/refresh') {
+          console.log('Token expired, attempting refresh...');
           const refreshed = await this.refreshTokens();
           if (refreshed) {
-            console.log("Token refreshed successfully, retrying request...");
+            console.log('Token refreshed successfully, retrying request...');
             return this.executeRequest(endpoint, options, skipAuth, true);
           } else {
-            console.log("Token refresh failed, logging out...");
+            console.log('Token refresh failed, logging out...');
             this.logout();
-            window.dispatchEvent(new CustomEvent("auth:logout"));
+            // Emit custom event for auth context to handle logout
+            window.dispatchEvent(new CustomEvent('auth:logout'));
           }
         }
 
-        const message = isJson
-          ? raw.message || raw.error || "Request failed"
-          : String(raw);
+        const message = isJson ? (raw.message || raw.error || 'Request failed') : String(raw);
         throw new Error(message);
       }
 
       return { success: true, data: raw as T };
     } catch (error) {
-      console.error("API request failed:", error);
+      console.error('API request failed:', error);
       throw error;
     }
   }
 
   private async refreshTokens(): Promise<boolean> {
     if (this.isRefreshing) {
+      // If already refreshing, wait for the current refresh to complete
       return new Promise((resolve) => {
         this.refreshSubscribers.push((token: string) => {
           resolve(!!token);
@@ -109,116 +100,111 @@ class ApiService {
 
     try {
       const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
-
+      
       if (!refreshToken) {
-        console.log("No refresh token available");
+        console.log('No refresh token available');
         return false;
       }
 
       const response = await fetch(`${this.baseURL}/auth/refresh`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({ refresh_token: refreshToken }),
       });
 
       if (!response.ok) {
-        console.log("Refresh token is invalid or expired");
+        console.log('Refresh token is invalid or expired');
         return false;
       }
 
       const data = await response.json();
       const { access_token, refresh_token } = data;
 
+      // Update stored tokens
       localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, access_token);
       localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refresh_token);
 
-      this.refreshSubscribers.forEach((callback) => callback(access_token));
+      // Notify all waiting subscribers
+      this.refreshSubscribers.forEach(callback => callback(access_token));
       this.refreshSubscribers = [];
 
-      console.log("Tokens refreshed successfully");
+      console.log('Tokens refreshed successfully');
       return true;
     } catch (error) {
-      console.error("Token refresh failed:", error);
+      console.error('Token refresh failed:', error);
       return false;
     } finally {
       this.isRefreshing = false;
     }
   }
 
-  // --- Auth ---
-  async login(
-    credentials: LoginCredentials
-  ): Promise<ApiResponse<{ user: User; token: string }>> {
-    const endpoint = "/auth/login-email";
-    const loginData = {
-      email_or_username: credentials.emailOrUsername,
-      password: credentials.password,
+  // Authentication endpoints
+  async login(credentials: LoginCredentials): Promise<ApiResponse<{ user: User; token: string }>> {
+    // Use the flexible login endpoint that accepts both email and username
+    const endpoint = '/auth/login-email';
+    
+    // Transform credentials to match backend expectations (snake_case)
+    const loginData = { 
+      email_or_username: credentials.emailOrUsername, 
+      password: credentials.password 
     };
-
-    const tokenResponse = await this.request<{
-      access_token: string;
-      refresh_token: string;
-      token_type: string;
-      expires_in: number;
-    }>(
-      endpoint,
-      {
-        method: "POST",
-        body: JSON.stringify(loginData),
-      },
-      true
-    );
+    
+    const tokenResponse = await this.request<{ access_token: string; refresh_token: string; token_type: string; expires_in: number }>(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(loginData),
+    }, true); // Skip auth for login
 
     const tokenData = tokenResponse.data!;
     const accessToken = tokenData.access_token;
-
+    
     if (!accessToken) {
-      throw new Error("Login failed: access token not found in response");
+      throw new Error('Login failed: access token not found in response');
     }
-
+    
+    // Store both tokens then load user
     localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, accessToken);
     localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, tokenData.refresh_token);
     const userResponse = await this.getCurrentUser();
-
+    
     return {
       success: true,
       data: {
         user: userResponse.data!,
-        token: accessToken,
-      },
+        token: accessToken
+      }
     };
   }
 
-  async register(
-    credentials: RegisterCredentials
-  ): Promise<ApiResponse<{ user: User; token: string }>> {
-    const userResponse = await this.request<User>(
-      "/auth/signup",
-      {
-        method: "POST",
-        body: JSON.stringify(credentials),
-      },
-      true
-    );
+  private isEmail(input: string): boolean {
+    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+    return emailRegex.test(input);
+  }
 
+  async register(credentials: RegisterCredentials): Promise<ApiResponse<{ user: User; token: string }>> {
+    const userResponse = await this.request<User>('/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    }, true); // Skip auth for registration
+    
+    // After successful registration, login to get token
     const loginResponse = await this.login({
       emailOrUsername: credentials.email,
       password: credentials.password,
     });
-
+    
     return {
       success: true,
       data: {
         user: userResponse.data!,
-        token: loginResponse.data!.token,
-      },
+        token: loginResponse.data!.token
+      }
     };
   }
 
   async getCurrentUser(): Promise<ApiResponse<User>> {
-    return this.request("/auth/me");
+    return this.request('/auth/me');
   }
 
   async logout(): Promise<void> {
@@ -227,11 +213,12 @@ class ApiService {
     localStorage.removeItem(STORAGE_KEYS.USER_DATA);
   }
 
-  // --- Users ---
+  // User endpoints
   async getUsers(): Promise<ApiResponse<User[]>> {
     try {
-      return await this.request("/users");
+      return await this.request('/users');
     } catch (err: any) {
+      // Fallback: if forbidden, return only current user
       try {
         const me = await this.getCurrentUser();
         return { success: true, data: me.data ? [me.data] : [] };
@@ -245,25 +232,31 @@ class ApiService {
     return this.request(`/users/${id}`);
   }
 
-  // --- Tasks ---
+  // Task endpoints
   async getTasks(): Promise<ApiResponse<Task[]>> {
     try {
-      let res = await this.request<any[]>("/tasks");
+      // Try to get all tasks first (backend will filter appropriately by role)
+      let res = await this.request<any[]>('/tasks');
       let tasks = (res.data || []).map(this.mapTaskFromApi);
-
+      
+      // If no tasks and user might be admin, try with project filter
       if (tasks.length === 0) {
         try {
           const projectId = await this.getOrCreateDefaultProjectId();
           res = await this.request<any[]>(`/tasks?project_id=${projectId}`);
           tasks = (res.data || []).map(this.mapTaskFromApi);
         } catch (projectError) {
-          console.warn("Project-specific task query failed:", projectError);
+          // If project-specific query fails, just return the empty tasks
+          console.warn('Project-specific task query failed:', projectError);
         }
       }
-
+      
       return { success: true, data: tasks };
     } catch (error) {
-      console.error("Failed to load tasks:", error);
+      // Log the actual error for debugging
+      console.error('Failed to load tasks:', error);
+      
+      // Always return empty array instead of throwing - backend now handles auth correctly
       return { success: true, data: [] };
     }
   }
@@ -278,143 +271,67 @@ class ApiService {
     const payload = {
       title: taskData.title,
       description: taskData.description ?? null,
-      status: this.mapStatusToApi(taskData.status || "To Do"),
+      status: this.mapStatusToApi(taskData.status || 'To Do'),
       project_id: projectId,
-      assignee_id: taskData.assigneeId
-        ? Number(taskData.assigneeId)
-        : null,
-      priority: taskData.priority || "Medium",
+      assignee_id: taskData.assigneeId ? Number(taskData.assigneeId) : null,
+      priority: taskData.priority || 'Medium',
       due_date: taskData.dueDate || null,
     };
-    const res = await this.request<any>("/tasks/", {
-      method: "POST",
+    const res = await this.request<any>('/tasks/', {
+      method: 'POST',
       body: JSON.stringify(payload),
     });
     return { success: true, data: this.mapTaskFromApi(res.data!) };
   }
 
-  async updateTask(
-    id: string,
-    taskData: UpdateTaskData
-  ): Promise<ApiResponse<Task>> {
+  async updateTask(id: string, taskData: UpdateTaskData): Promise<ApiResponse<Task>> {
     const payload: any = {
       title: taskData.title,
       description: taskData.description,
-      status: taskData.status
-        ? this.mapStatusToApi(taskData.status)
-        : undefined,
+      status: taskData.status ? this.mapStatusToApi(taskData.status) : undefined,
     };
     const res = await this.request<any>(`/tasks/${Number(id)}`, {
-      method: "PUT",
+      method: 'PUT',
       body: JSON.stringify(payload),
     });
     return { success: true, data: this.mapTaskFromApi(res.data!) };
   }
 
   async deleteTask(id: string): Promise<ApiResponse<void>> {
-    await this.request(`/tasks/${Number(id)}`, { method: "DELETE" });
+    await this.request(`/tasks/${Number(id)}`, { method: 'DELETE' });
     return { success: true } as ApiResponse<void>;
   }
 
-  async updateTaskStatus(
-    id: string,
-    status: "To Do" | "In Progress" | "Done"
-  ): Promise<ApiResponse<Task>> {
+  async updateTaskStatus(id: string, status: 'To Do' | 'In Progress' | 'Done'): Promise<ApiResponse<Task>> {
     const res = await this.request<any>(`/tasks/${Number(id)}/status`, {
-      method: "PATCH",
+      method: 'PATCH',
       body: JSON.stringify({ status: this.mapStatusToApi(status) }),
     });
     return { success: true, data: this.mapTaskFromApi(res.data!) };
   }
 
-  private mapStatusToApi(
-    status: "To Do" | "In Progress" | "Done"
-  ): "todo" | "in_progress" | "done" {
+  // Helpers
+  private mapStatusToApi(status: 'To Do' | 'In Progress' | 'Done'): 'todo' | 'in_progress' | 'done' {
     switch (status) {
-      case "To Do":
-        return "todo";
-      case "In Progress":
-        return "in_progress";
-      case "Done":
-        return "done";
+      case 'To Do':
+        return 'todo';
+      case 'In Progress':
+        return 'in_progress';
+      case 'Done':
+        return 'done';
       default:
-        return "todo";
+        return 'todo';
     }
   }
 
-  private mapStatusFromApi(
-    status: "todo" | "in_progress" | "done"
-  ): "To Do" | "In Progress" | "Done" {
-    switch (status) {
-      case "todo":
-        return "To Do";
-      case "in_progress":
-        return "In Progress";
-      case "done":
-        return "Done";
-    }
-  }
-
-  private mapTaskFromApi = (apiTask: any): Task => {
-    return {
-      id: String(apiTask.id),
-      title: apiTask.title,
-      description: apiTask.description || "",
-      status: this.mapStatusFromApi(apiTask.status),
-      priority: "Medium",
-      assigneeId:
-        apiTask.assignee_id != null ? String(apiTask.assignee_id) : undefined,
-      assignee: apiTask.assignee as User | undefined,
-      createdById: apiTask.project?.creator?.id
-        ? String(apiTask.project.creator.id)
-        : String(apiTask.project_id),
-      createdBy: apiTask.project?.creator as User | undefined,
-      createdAt: apiTask.created_at,
-      updatedAt: apiTask.updated_at,
-      dueDate: undefined,
-      tags: [],
-    };
-  };
-
-  private async getOrCreateDefaultProjectId(): Promise<number> {
-    const key = "default_project_id";
-    const cached = localStorage.getItem(key);
-    if (cached) return Number(cached);
-
-    const projectsRes = await this.request<any[]>("/projects/");
-    const projects = (projectsRes.data || []) as any[];
-    if (projects.length > 0) {
-      localStorage.setItem(key, String(projects[0].id));
-      return projects[0].id;
-    }
-
-    const teamsRes = await this.request<any[]>("/teams");
-    const teams = (teamsRes.data || []) as any[];
-    const teamId = teams[0]?.id;
-    const projectPayload: any = teamId
-      ? { name: "My Board", description: "Default project", teamId }
-      : {
-          name: "My Board",
-          description: "Default project",
-          teamId: 1,
-        };
-    const created = await this.request<any>("/projects/", {
-      method: "POST",
-      body: JSON.stringify(projectPayload),
-    });
-    const id = (created.data as any).id;
-    localStorage.setItem(key, String(id));
-    return id;
-  }
-
-  // --- Teams ---
+  // Teams endpoints
   async listTeams(): Promise<ApiResponse<Team[]>> {
-    return this.request("/teams");
+    return this.request('/teams');
   }
 
   async createTeam(data: CreateTeamData): Promise<ApiResponse<Team>> {
-    return this.request("/teams", {
-      method: "POST",
+    return this.request('/teams', {
+      method: 'POST',
       body: JSON.stringify(data),
     });
   }
@@ -427,46 +344,88 @@ class ApiService {
     return this.request(`/teams/${teamId}/members`);
   }
 
-  async addTeamMember(
-    teamId: number,
-    userId: number,
-    role: "member" | "lead" | "admin" = "member"
-  ): Promise<ApiResponse<TeamMember>> {
+  async addTeamMember(teamId: number, userId: number, role: 'member' | 'lead' | 'admin' = 'member'): Promise<ApiResponse<TeamMember>> {
     return this.request(`/teams/${teamId}/members`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({ user_id: userId, role }),
     });
   }
 
-  async removeTeamMember(
-    teamId: number,
-    userId: number
-  ): Promise<ApiResponse<{ message: string }>> {
+  async removeTeamMember(teamId: number, userId: number): Promise<ApiResponse<{ message: string }>> {
     return this.request(`/teams/${teamId}/members/${userId}`, {
-      method: "DELETE",
+      method: 'DELETE',
     });
   }
 
-  // --- Projects ---
+  private mapStatusFromApi(status: 'todo' | 'in_progress' | 'done'): 'To Do' | 'In Progress' | 'Done' {
+    switch (status) {
+      case 'todo':
+        return 'To Do';
+      case 'in_progress':
+        return 'In Progress';
+      case 'done':
+        return 'Done';
+    }
+  }
+
+  private mapTaskFromApi = (apiTask: any): Task => {
+    return {
+      id: String(apiTask.id),
+      title: apiTask.title,
+      description: apiTask.description || '',
+      status: this.mapStatusFromApi(apiTask.status),
+      priority: 'Medium',
+      assigneeId: apiTask.assignee_id != null ? String(apiTask.assignee_id) : undefined,
+      assignee: apiTask.assignee as User | undefined,
+      createdById: apiTask.project?.creator?.id ? String(apiTask.project.creator.id) : String(apiTask.project_id),
+      createdBy: apiTask.project?.creator as User | undefined,
+      createdAt: apiTask.created_at,
+      updatedAt: apiTask.updated_at,
+      dueDate: undefined,
+      tags: [],
+    };
+  };
+
+  private async getOrCreateDefaultProjectId(): Promise<number> {
+    const key = 'default_project_id';
+    const cached = localStorage.getItem(key);
+    if (cached) return Number(cached);
+
+    // Try to find existing project
+    const projectsRes = await this.request<any[]>('/projects/');
+    const projects = (projectsRes.data || []) as any[];
+    if (projects.length > 0) {
+      localStorage.setItem(key, String(projects[0].id));
+      return projects[0].id;
+    }
+
+    // Create a default project under the first available team
+    const teamsRes = await this.request<any[]>('/teams');
+    const teams = (teamsRes.data || []) as any[];
+    const teamId = teams[0]?.id;
+    const projectPayload: any = teamId ? { name: 'My Board', description: 'Default project', teamId } : { name: 'My Board', description: 'Default project', teamId: 1 };
+    const created = await this.request<any>('/projects/', {
+      method: 'POST',
+      body: JSON.stringify(projectPayload),
+    });
+    const id = (created.data as any).id;
+    localStorage.setItem(key, String(id));
+    return id;
+  }
+
+  // Projects
   async getProject(projectId: number): Promise<ApiResponse<any>> {
     return this.request(`/projects/${projectId}`);
   }
 
-  async createProject(data: {
-    name: string;
-    description?: string;
-    teamId: number;
-  }): Promise<ApiResponse<any>> {
-    return this.request("/projects/", {
-      method: "POST",
-      body: JSON.stringify({
-        name: data.name,
-        description: data.description ?? null,
-        teamId: data.teamId,
-      }),
+  async createProject(data: { name: string; description?: string; teamId: number }): Promise<ApiResponse<any>> {
+    return this.request('/projects/', {
+      method: 'POST',
+      body: JSON.stringify({ name: data.name, description: data.description ?? null, teamId: data.teamId }),
     });
   }
 
+  // Expose for consumers needing a project context (e.g., websockets)
   async getDefaultProjectId(): Promise<number> {
     return this.getOrCreateDefaultProjectId();
   }
