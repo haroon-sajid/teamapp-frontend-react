@@ -12,12 +12,12 @@ const getEnv = (key: string, fallback: string): string => {
 
 export const API_BASE_URL = getEnv(
   "REACT_APP_API_BASE_URL",
-  "http://localhost:8000" // ✅ fallback for development
+  "https://teamapp-backend-python-1.onrender.com"
 );
 
 export const WS_BASE_URL = getEnv(
   "REACT_APP_WS_URL",
-  "ws://localhost:3001" // ✅ fallback for development
+  "wss://web-production-3f101.up.railway.app"
 );
 
 export const KANBAN_COLUMNS = [
