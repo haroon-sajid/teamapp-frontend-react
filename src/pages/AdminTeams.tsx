@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { apiService } from 'services/api';
 import { Team, TeamMember, User, CreateTeamData } from 'types';
 import { useAuth } from 'contexts/AuthContext';
@@ -12,7 +12,6 @@ const AdminTeams: React.FC = () => {
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [creating, setCreating] = useState<boolean>(false);
   const [isCreateTeamModalOpen, setIsCreateTeamModalOpen] = useState(false);
   const [addingMember, setAddingMember] = useState<boolean>(false);
@@ -22,7 +21,6 @@ const AdminTeams: React.FC = () => {
 
   const load = async () => {
     try {
-      setIsLoading(true);
       const [teamsRes, usersRes] = await Promise.all([
         apiService.listTeams(),
         apiService.getUsers(),
@@ -34,19 +32,17 @@ const AdminTeams: React.FC = () => {
       }
     } catch (e: any) {
       addToast({ title: 'Failed to load teams', description: e.message || String(e), variant: 'error' });
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  const loadMembers = async (teamId: number) => {
+  const loadMembers = useCallback(async (teamId: number) => {
     try {
       const res = await apiService.listTeamMembers(teamId);
       setMembers(res.data || []);
     } catch (e: any) {
       addToast({ title: 'Failed to load members', description: e.message || String(e), variant: 'error' });
     }
-  };
+  }, [addToast]);
 
   useEffect(() => {
     load();
@@ -59,7 +55,7 @@ const AdminTeams: React.FC = () => {
     } else {
       setMembers([]);
     }
-  }, [selectedTeamId]);
+  }, [selectedTeamId, loadMembers]);
 
   const handleCreateTeam = async (teamData: CreateTeamData) => {
     if (!isAdmin) return;

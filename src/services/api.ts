@@ -69,7 +69,6 @@ class ApiService {
         }
 
         const message = isJson ? (raw.message || raw.error || 'Request failed') : String(raw);
-        const err: ApiResponse<T> = { success: false, message, error: message };
         throw new Error(message);
       }
 

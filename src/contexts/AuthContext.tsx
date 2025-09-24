@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, AuthState, LoginCredentials, RegisterCredentials } from 'types';
+import { AuthState, LoginCredentials, RegisterCredentials } from 'types';
 import { apiService } from 'services/api';
 import { webSocketService } from 'services/websocket';
 import { STORAGE_KEYS } from 'utils/constants';

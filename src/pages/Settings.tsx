@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from 'components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from 'components/ui/select';
 import { useToast } from 'components/common/Toast';
 import Header from 'components/layout/Header';
-import { ArrowLeft, Save, Shield, User, Mail } from 'lucide-react';
+import { ArrowLeft, Save, Shield, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { USER_ROLES } from 'utils/constants';
 
