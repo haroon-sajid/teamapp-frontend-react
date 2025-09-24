@@ -22,7 +22,7 @@
     }
   ],
   "env": {
-    "REACT_APP_API_BASE_URL": "@react_app_api_base_url",
-    "REACT_APP_WS_URL": "@react_app_ws_url"
+    "REACT_APP_API_BASE_URL": "https://teamapp-backend-python-1.onrender.com",
+    "REACT_APP_WS_URL": "https://web-production-3f101.up.railway.app"
   }
 }
