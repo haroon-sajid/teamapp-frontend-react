@@ -1,3 +1,4 @@
+import { apiService } from 'services/api';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
@@ -37,13 +38,32 @@ const RegisterForm: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      await registerUser({
+
+      // await registerUser({
+      //   email: data.email,
+      //   password: data.password,
+      //   username: data.username,
+      //   role: data.role || 'member',
+      // });
+      // navigate('/dashboard');
+
+
+      const response = await apiService.register({
         email: data.email,
         password: data.password,
         username: data.username,
         role: data.role || 'member',
       });
-      navigate('/dashboard');
+      
+      if (response.success) {
+        // Save user in AuthContext if needed
+        navigate('/dashboard');
+      } else {
+        throw new Error("Registration failed");
+      }
+      
+
+
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Registration failed');
     } finally {
