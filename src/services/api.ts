@@ -242,8 +242,11 @@ class ApiService {
           res = await this.request<any[]>(`/tasks?project_id=${projectId}`);
           tasks = (res.data || []).map(this.mapTaskFromApi);
         } catch (projectError) {
-          // If project-specific query fails, just return the empty tasks
+          // If project-specific query fails, check if it's a team-related error
           console.warn('Project-specific task query failed:', projectError);
+          if (projectError instanceof Error && projectError.message.includes('team')) {
+            throw new Error('No teams available. Please contact an administrator to create a team first.');
+          }
         }
       }
       
@@ -252,7 +255,12 @@ class ApiService {
       // Log the actual error for debugging
       console.error('Failed to load tasks:', error);
       
-      // Always return empty array instead of throwing - backend now handles auth correctly
+      // Re-throw team-related errors so the UI can show appropriate messages
+      if (error instanceof Error && error.message.includes('team')) {
+        throw error;
+      }
+      
+      // For other errors, return empty array
       return { success: true, data: [] };
     }
   }
@@ -263,19 +271,27 @@ class ApiService {
   }
 
   async createTask(taskData: CreateTaskData): Promise<ApiResponse<Task>> {
-    const projectId = await this.getOrCreateDefaultProjectId();
-    const payload = {
-      title: taskData.title,
-      description: taskData.description ?? null,
-      status: this.mapStatusToApi(taskData.status || 'To Do'),
-      projectId: projectId,
-      assigneeId: taskData.assigneeId ? Number(taskData.assigneeId) : null,
-    };
-    const res = await this.request<any>('/tasks/', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-    return { success: true, data: this.mapTaskFromApi(res.data!) };
+    try {
+      const projectId = await this.getOrCreateDefaultProjectId();
+      const payload = {
+        title: taskData.title,
+        description: taskData.description ?? null,
+        status: this.mapStatusToApi(taskData.status || 'To Do'),
+        projectId: projectId,
+        assigneeId: taskData.assigneeId ? Number(taskData.assigneeId) : null,
+      };
+      const res = await this.request<any>('/tasks/', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      return { success: true, data: this.mapTaskFromApi(res.data!) };
+    } catch (error) {
+      console.error('Failed to create task:', error);
+      if (error instanceof Error && error.message.includes('team')) {
+        throw new Error('Unable to create task. Please ensure you have access to a team.');
+      }
+      throw error;
+    }
   }
 
   async updateTask(id: string, taskData: UpdateTaskData): Promise<ApiResponse<Task>> {
@@ -385,26 +401,43 @@ class ApiService {
     const cached = localStorage.getItem(key);
     if (cached) return Number(cached);
 
-    // Try to find existing project
-    const projectsRes = await this.request<any[]>('/projects/');
-    const projects = (projectsRes.data || []) as any[];
-    if (projects.length > 0) {
-      localStorage.setItem(key, String(projects[0].id));
-      return projects[0].id;
-    }
+    try {
+      // Try to find existing project
+      const projectsRes = await this.request<any[]>('/projects/');
+      const projects = (projectsRes.data || []) as any[];
+      if (projects.length > 0) {
+        localStorage.setItem(key, String(projects[0].id));
+        return projects[0].id;
+      }
 
-    // Create a default project under the first available team
-    const teamsRes = await this.request<any[]>('/teams');
-    const teams = (teamsRes.data || []) as any[];
-    const teamId = teams[0]?.id;
-    const projectPayload: any = teamId ? { name: 'My Board', description: 'Default project', teamId: teamId } : { name: 'My Board', description: 'Default project', teamId: 1 };
-    const created = await this.request<any>('/projects/', {
-      method: 'POST',
-      body: JSON.stringify(projectPayload),
-    });
-    const id = (created.data as any).id;
-    localStorage.setItem(key, String(id));
-    return id;
+      // Get available teams
+      const teamsRes = await this.request<any[]>('/teams');
+      const teams = (teamsRes.data || []) as any[];
+      
+      if (teams.length === 0) {
+        throw new Error('No teams available. Please create a team first or contact an administrator.');
+      }
+
+      // Create a default project under the first available team
+      const teamId = teams[0].id;
+      const projectPayload = { 
+        name: 'My Board', 
+        description: 'Default project', 
+        teamId: teamId 
+      };
+      
+      const created = await this.request<any>('/projects/', {
+        method: 'POST',
+        body: JSON.stringify(projectPayload),
+      });
+      
+      const id = (created.data as any).id;
+      localStorage.setItem(key, String(id));
+      return id;
+    } catch (error) {
+      console.error('Failed to get or create default project:', error);
+      throw new Error('Unable to create or access projects. Please ensure you have access to a team.');
+    }
   }
 
   // Projects
