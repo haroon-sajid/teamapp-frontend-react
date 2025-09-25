@@ -71,7 +71,36 @@ class ApiService {
           }
         }
 
-        const message = isJson ? (raw.message || raw.error || 'Request failed') : String(raw);
+        let message = 'Request failed';
+        if (isJson) {
+          const body: any = raw;
+          // Prefer detailed backend messages
+          if (typeof body?.detail === 'string') message = body.detail;
+          else if (typeof body?.detail?.message === 'string') message = body.detail.message;
+          else if (typeof body?.message === 'string') message = body.message;
+          else if (body?.details) {
+            const details = body.details;
+            if (Array.isArray(details)) {
+              message = details.filter(Boolean).join(', ');
+            } else if (typeof details === 'object') {
+              try {
+                const parts: string[] = [];
+                for (const [field, msgs] of Object.entries(details)) {
+                  if (Array.isArray(msgs)) parts.push(`${field}: ${msgs.join(', ')}`);
+                  else if (msgs) parts.push(`${field}: ${String(msgs)}`);
+                }
+                if (parts.length > 0) message = parts.join('; ');
+              } catch {
+                // noop
+              }
+            }
+          } else if (typeof body?.error === 'string' && body.error !== 'Validation Error') {
+            message = body.error;
+          }
+        } else {
+          message = String(raw);
+        }
+
         throw new Error(message);
       }
 
@@ -448,20 +477,28 @@ class ApiService {
   }
 
   // Projects
-  async getProject(projectId: number): Promise<ApiResponse<any>> {
-    return this.request(`/projects/${projectId}`);
+    async getDefaultProjectId(): Promise<number> {
+    return this.getOrCreateDefaultProjectId();
   }
 
-  async createProject(data: { name: string; description?: string; teamId: number }): Promise<ApiResponse<any>> {
+  async createProject(payload: { name: string; description?: string; teamId: number }): Promise<ApiResponse<any>> {
     return this.request('/projects/', {
       method: 'POST',
-      body: JSON.stringify({ name: data.name, description: data.description ?? null, team_id: data.teamId }),
+      body: JSON.stringify(payload),
     });
   }
+}
 
-  // Expose for consumers needing a project context (e.g., websockets)
-  async getDefaultProjectId(): Promise<number> {
-    return this.getOrCreateDefaultProjectId();
+// ✅ Place helper here, outside the class but before apiService export
+export function extractErrorMessage(error: any): string {
+  try {
+    if (error?.response?.data?.message) return error.response.data.message;
+    if (error?.response?.data?.detail?.message) return error.response.data.detail.message;
+    if (error?.response?.data?.error) return error.response.data.error;
+    if (error instanceof Error) return error.message;
+    return 'An unexpected error occurred';
+  } catch {
+    return 'An unexpected error occurred';
   }
 }
 
@@ -470,15 +507,10 @@ export const apiService = new ApiService();
 // Expose configuration logger for App startup
 export function logApiConfiguration(): void {
   try {
-    // eslint-disable-next-line no-console
-    console.log('\ud83d\udd27 API Configuration:');
-    // eslint-disable-next-line no-console
+    console.log(' API Configuration:');
     console.log('  HTTP API URL:', API_BASE_URL);
-    // eslint-disable-next-line no-console
     console.log('  WebSocket URL:', WS_BASE_URL);
-    // eslint-disable-next-line no-console
     console.log('  Environment:', process.env.NODE_ENV);
-    // eslint-disable-next-line no-console
     console.log('  REACT_APP_API_BASE_URL:', (process.env as any)?.REACT_APP_API_BASE_URL);
   } catch (_) {
     // noop

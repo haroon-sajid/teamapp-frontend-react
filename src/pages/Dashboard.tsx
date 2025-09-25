@@ -6,7 +6,7 @@ import Header from 'components/layout/Header';
 import KanbanBoard from 'components/kanban/KanbanBoard';
 import TaskModal from 'components/tasks/TaskModal';
 import { Task, CreateTaskData, UpdateTaskData, Team } from 'types';
-import { apiService } from 'services/api';
+import { apiService, extractErrorMessage } from 'services/api';
 import { USER_ROLES } from 'utils/constants';
 import { Loader2, AlertCircle } from 'lucide-react';
 
@@ -308,9 +308,23 @@ const Dashboard: React.FC = () => {
                   disabled={isCreatingProject || !projectName.trim() || (user?.role === USER_ROLES.Admin && !selectedTeamId)}
                   onClick={async () => {
                     try {
-                      setIsCreatingProject(true);
+                      if (!projectName.trim()) {
+                        addToast({ type: 'error', title: 'Invalid Input', description: 'Project name is required' });
+                        return;
+                      }
+
+                      if (user?.role === USER_ROLES.Admin && !selectedTeamId) {
+                        addToast({ type: 'error', title: 'Invalid Input', description: 'Team is required for admins' });
+                        return;
+                      }
+
                       const teamId = user?.role === USER_ROLES.Admin ? Number(selectedTeamId) : (teams[0]?.id || 0);
-                      if (!teamId) throw new Error('No team available');
+                      if (!teamId) {
+                        addToast({ type: 'error', title: 'No Team', description: 'No team available. Please create or join a team first.' });
+                        return;
+                      }
+
+                      setIsCreatingProject(true);
                       const res = await apiService.createProject({ name: projectName.trim(), description: projectDescription.trim() || undefined, teamId });
                       const newId = (res.data as any)?.id;
                       if (newId) localStorage.setItem('default_project_id', String(newId));
@@ -323,7 +337,8 @@ const Dashboard: React.FC = () => {
                       setProjectName('');
                       setProjectDescription('');
                     } catch (e: any) {
-                      addToast({ type: 'error', title: 'Create Failed', description: e.message || String(e) });
+                      const msg = extractErrorMessage(e);
+                      addToast({ type: 'error', title: 'Create Failed', description: msg });
                     } finally {
                       setIsCreatingProject(false);
                     }
