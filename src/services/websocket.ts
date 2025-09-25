@@ -10,6 +10,9 @@ class WebSocketService {
   private currentProjectId: number | null = null;
 
   connect(): void {
+    if (!WS_BASE_URL) {
+      return;
+    }
     if (this.socket?.connected) {
       return;
     }
@@ -32,6 +35,7 @@ class WebSocketService {
   }
 
   disconnect(): void {
+    if (!WS_BASE_URL) return;
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
@@ -39,6 +43,7 @@ class WebSocketService {
   }
 
   private setupEventListeners(): void {
+    if (!WS_BASE_URL) return;
     if (!this.socket) return;
 
     this.socket.on('connect', () => {
@@ -82,6 +87,7 @@ class WebSocketService {
   }
 
   private handleReconnect(): void {
+    if (!WS_BASE_URL) return;
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
       const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
@@ -96,6 +102,7 @@ class WebSocketService {
   }
 
   private async handleTokenRefreshAndReconnect(): Promise<void> {
+    if (!WS_BASE_URL) return;
     console.log('Handling token refresh for WebSocket...');
     
     // Disconnect current socket
@@ -122,6 +129,7 @@ class WebSocketService {
 
   // Event emitters
   emitTaskCreated(task: Task): void {
+    if (!WS_BASE_URL) return;
     if (!this.currentProjectId) return;
     this.socket?.emit('task_created', {
       taskId: task.id,
@@ -131,6 +139,7 @@ class WebSocketService {
   }
 
   emitTaskUpdated(task: Task): void {
+    if (!WS_BASE_URL) return;
     if (!this.currentProjectId) return;
     this.socket?.emit('task_updated', {
       taskId: task.id,
@@ -141,6 +150,7 @@ class WebSocketService {
   }
 
   emitTaskDeleted(taskId: string): void {
+    if (!WS_BASE_URL) return;
     if (!this.currentProjectId) return;
     this.socket?.emit('task_deleted', { taskId, projectId: this.currentProjectId });
   }
@@ -155,52 +165,64 @@ class WebSocketService {
 
   // Event listeners
   onTaskCreated(callback: (task: Task) => void): void {
+    if (!WS_BASE_URL) return;
     this.socket?.on('task_created', callback);
   }
 
   onTaskUpdated(callback: (task: Task) => void): void {
+    if (!WS_BASE_URL) return;
     this.socket?.on('task_updated', callback);
   }
 
   onTaskDeleted(callback: (data: { taskId: string }) => void): void {
+    if (!WS_BASE_URL) return;
     this.socket?.on('task_deleted', callback);
   }
 
   onUserJoined(callback: (user: User) => void): void {
+    if (!WS_BASE_URL) return;
     this.socket?.on('user_joined', callback);
   }
 
   onUserLeft(callback: (data: { userId: string }) => void): void {
+    if (!WS_BASE_URL) return;
     this.socket?.on('user_left', callback);
   }
 
   // Remove event listeners
   offTaskCreated(callback?: (task: Task) => void): void {
+    if (!WS_BASE_URL) return;
     this.socket?.off('task_created', callback);
   }
 
   offTaskUpdated(callback?: (task: Task) => void): void {
+    if (!WS_BASE_URL) return;
     this.socket?.off('task_updated', callback);
   }
 
   offTaskDeleted(callback?: (data: { taskId: string }) => void): void {
+    if (!WS_BASE_URL) return;
     this.socket?.off('task_deleted', callback);
   }
 
   offUserJoined(callback?: (user: User) => void): void {
+    if (!WS_BASE_URL) return;
     this.socket?.off('user_joined', callback);
   }
 
   offUserLeft(callback?: (data: { userId: string }) => void): void {
+    if (!WS_BASE_URL) return;
     this.socket?.off('user_left', callback);
   }
 
   isConnected(): boolean {
+    if (!WS_BASE_URL) return false;
     return this.socket?.connected || false;
   }
 
   // Force reconnection with fresh token (called by auth context after refresh)
   refreshConnection(): void {
+    if (!WS_BASE_URL) return;
     console.log('Refreshing WebSocket connection with new token...');
     if (this.socket) {
       this.socket.disconnect();
@@ -211,12 +233,14 @@ class WebSocketService {
   }
 
   joinProject(projectId: number): void {
+    if (!WS_BASE_URL) return;
     this.currentProjectId = projectId;
     this.socket?.emit('join_project', { projectId });
   }
 
   // Initialize project context when WebSocket connects
   async initializeProjectContext(): Promise<void> {
+    if (!WS_BASE_URL) return;
     try {
       // Get the default project ID from API service
       const { apiService } = await import('./api');
