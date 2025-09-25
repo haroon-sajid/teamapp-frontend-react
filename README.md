@@ -55,20 +55,41 @@ A professional React frontend for a Team Collaboration Kanban Board with real-ti
    npm ci
    ```
 
-3. **Start the development server**
+3. **Set up environment variables**
    ```bash
-   # Windows cmd example with env
-   set REACT_APP_API_BASE_URL=http://localhost:8000 && set REACT_APP_WS_URL=http://localhost:3001 && npm start
+   # Copy the example environment file
+   cp env.example .env.local
+   
+   # Edit .env.local with your local development settings:
+   # REACT_APP_API_BASE_URL=http://localhost:8000
+   # REACT_APP_WS_URL=ws://localhost:3001
+   # REACT_APP_DEBUG=true
    ```
 
-4. **Open your browser**
+4. **Start the development server**
+   ```bash
+   npm start
+   ```
+
+5. **Open your browser**
    Navigate to `http://localhost:3000`
 
 ### Backend Integration
 
-Configure via env:
-- **API**: `REACT_APP_API_BASE_URL` (default http://localhost:8000)
-- **WebSocket**: `REACT_APP_WS_URL` (default http://localhost:3001)
+The app automatically configures API endpoints based on environment:
+
+**Development (local):**
+- API: `http://localhost:8000`
+- WebSocket: `ws://localhost:3001`
+
+**Production (Vercel):**
+- API: `https://teamapp-backend-python-1.onrender.com`
+- WebSocket: `wss://web-production-3f101.up.railway.app`
+
+**Environment Variables:**
+- `REACT_APP_API_BASE_URL`: Backend API URL
+- `REACT_APP_WS_URL`: WebSocket server URL
+- `REACT_APP_DEBUG`: Enable debug mode (true/false)
 
 ## Project Structure
 
@@ -151,9 +172,29 @@ The app uses WebSocket connections for real-time updates:
 ### Available Scripts
 
 - `npm start` - Start development server
-- `npm build` - Build for production
+- `npm run build` - Build for production
 - `npm test` - Run tests
 - `npm eject` - Eject from Create React App
+
+### Testing Build Locally
+
+To test the production build locally (reproducing Vercel behavior):
+
+```bash
+# Install dependencies
+npm ci
+
+# Test build with CI=true (treats warnings as errors)
+CI=true npm run build
+
+# Run ESLint to check for issues
+npx eslint "src/**/*.{js,jsx,ts,tsx}" --max-warnings=0
+```
+
+**Expected Results:**
+- Build should complete successfully
+- No ESLint errors or warnings
+- All API calls will use production URLs when built
 
 ### Code Quality
 
@@ -179,8 +220,9 @@ This project is configured for automatic deployment to Vercel when you push chan
 2. **Configure Environment Variables**:
    In your Vercel dashboard, go to Project Settings → Environment Variables and add:
    ```
-   REACT_APP_API_BASE_URL = your-backend-api-url
-   REACT_APP_WS_URL = your-websocket-url
+   REACT_APP_API_BASE_URL = https://teamapp-backend-python-1.onrender.com
+   REACT_APP_WS_URL = wss://web-production-3f101.up.railway.app
+   REACT_APP_DEBUG = false
    ```
 
 3. **Deploy**:

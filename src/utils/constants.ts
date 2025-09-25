@@ -1,35 +1,23 @@
 // Centralized environment-driven configuration
 const getEnv = (key: string, fallback: string): string => {
   // CRA exposes REACT_APP_* at build time
-  // Also support Vite-style import.meta.env for flexibility
-  // @ts-ignore
-  const viteVal = typeof import.meta !== 'undefined' ? import.meta.env?.[key] : undefined;
-  const craVal = (typeof process !== 'undefined' ? (process as any).env?.[key] : undefined) as string | undefined;
-  return (viteVal as string | undefined) || craVal || fallback;
+  const envVal = (typeof process !== 'undefined' ? (process as any).env?.[key] : undefined) as string | undefined;
+  return envVal || fallback;
 };
 
-// utils/constants.ts
-
-// export const API_BASE_URL = getEnv(
-//   "REACT_APP_API_BASE_URL",
-//   "http://localhost:8000"
-// );
-
-// export const WS_BASE_URL = getEnv(
-//   "REACT_APP_WS_URL",
-//   "ws://localhost:3001"
-// );
-
-
-
+// API Configuration
 export const API_BASE_URL = getEnv(
   "REACT_APP_API_BASE_URL",
-  "http://localhost:8000"
+  process.env.NODE_ENV === 'development' 
+    ? "http://localhost:8000" 
+    : "https://teamapp-backend-python-1.onrender.com"
 );
 
 export const WS_BASE_URL = getEnv(
   "REACT_APP_WS_URL",
-  "ws://localhost:3001"
+  process.env.NODE_ENV === 'development' 
+    ? "ws://localhost:3001" 
+    : "wss://web-production-3f101.up.railway.app"
 );
 
 
