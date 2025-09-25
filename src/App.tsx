@@ -11,7 +11,11 @@ import Dashboard from 'pages/Dashboard';
 import Settings from 'pages/Settings';
 import Profile from 'pages/Profile';
 import AdminTeams from 'pages/AdminTeams';
+import { logApiConfiguration } from 'services/api.js';
 import './index.css';
+
+// Log API configuration on app start
+logApiConfiguration();
 
 // Create router with future flags
 const router = createBrowserRouter([

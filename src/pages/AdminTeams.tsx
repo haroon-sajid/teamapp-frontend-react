@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { apiService } from 'services/api';
+import { apiService } from 'services/api.js';
 import { Team, TeamMember, User, CreateTeamData } from 'types';
 import { useAuth } from 'contexts/AuthContext';
 import { useToast } from 'components/common/Toast';

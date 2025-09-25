@@ -5,7 +5,7 @@ const getEnv = (key: string, fallback: string): string => {
   return envVal || fallback;
 };
 
-// API Configuration
+// API Configuration - Python FastAPI Backend
 export const API_BASE_URL = getEnv(
   "REACT_APP_API_BASE_URL",
   process.env.NODE_ENV === 'development' 
@@ -13,6 +13,7 @@ export const API_BASE_URL = getEnv(
     : "https://teamapp-backend-python-1.onrender.com"
 );
 
+// WebSocket Configuration - Node.js Backend (for real-time events only)
 export const WS_BASE_URL = getEnv(
   "REACT_APP_WS_URL",
   process.env.NODE_ENV === 'development' 
