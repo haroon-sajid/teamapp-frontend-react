@@ -111,8 +111,6 @@ class ApiService {
     }
   }
 
-  
-
   private async refreshTokens(): Promise<boolean> {
     if (this.isRefreshing) {
       // If already refreshing, wait for the current refresh to complete
@@ -477,7 +475,7 @@ class ApiService {
   }
 
   // Projects
-    async getDefaultProjectId(): Promise<number> {
+  async getDefaultProjectId(): Promise<number> {
     return this.getOrCreateDefaultProjectId();
   }
 
@@ -507,7 +505,7 @@ export const apiService = new ApiService();
 // Expose configuration logger for App startup
 export function logApiConfiguration(): void {
   try {
-    console.log(' API Configuration:');
+    console.log('🔧 API Configuration:');
     console.log('  HTTP API URL:', API_BASE_URL);
     console.log('  WebSocket URL:', WS_BASE_URL);
     console.log('  Environment:', process.env.NODE_ENV);
