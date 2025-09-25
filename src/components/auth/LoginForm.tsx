@@ -65,7 +65,7 @@ const LoginForm: React.FC = () => {
                   required: 'Email or username is required',
                   minLength: {
                     value: 3,
-                    message: 'Must be at least 3 characters',
+                    message: 'Username must be at least 3 characters',
                   },
                 })}
                 className={errors.emailOrUsername ? 'border-red-500' : ''}
