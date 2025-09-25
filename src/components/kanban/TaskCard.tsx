@@ -121,7 +121,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
                 
                 {createdBy && (
                   <span className="text-xs">
-                    by {createdBy.username}
+                    created at {new Date(createdBy.created_at).toLocaleString()}
                   </span>
                 )}
               </div>

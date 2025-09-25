@@ -55,7 +55,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
     const id = Math.random().toString(36).substr(2, 9);
     
     // Handle variant as alias for type
-    const toastType = toast.type || toast.variant || 'info';
+    const toastType = (toast as any).type || (toast as any).variant || 'info';
     
     const newToast: Toast = {
       id,
@@ -87,17 +87,21 @@ interface ToastContainerProps {
   onRemove: (id: string) => void;
 }
 
+
+
 const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onRemove }) => {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2">
+    <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 space-y-3">
       {toasts.map(toast => (
         <ToastItem key={toast.id} toast={toast} onRemove={onRemove} />
       ))}
     </div>
   );
 };
+
+
 
 interface ToastItemProps {
   toast: Toast;
@@ -138,7 +142,8 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
   return (
     <div
       className={cn(
-        'max-w-sm w-full border rounded-lg shadow-lg p-4 transition-all duration-300 ease-in-out',
+        // fixed width that fits most screens, right aligned
+        'max-w-sm w-80 border rounded-lg shadow-lg p-4 transition-all duration-300 ease-in-out',
         getBackgroundColor()
       )}
     >
