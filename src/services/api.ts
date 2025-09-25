@@ -11,12 +11,7 @@ import {
   CreateTeamData,
   TeamMember
 } from 'types';
-// import { API_BASE_URL, STORAGE_KEYS } from 'utils/constants';
-
-import { STORAGE_KEYS } from "utils/constants";
-
-//  Use environment variable with safe fallback for development
-import { API_BASE_URL } from 'utils/constants';
+import { STORAGE_KEYS, API_BASE_URL } from "utils/constants";
 
 
 class ApiService {

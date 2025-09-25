@@ -24,12 +24,12 @@ const getEnv = (key: string, fallback: string): string => {
 
 export const API_BASE_URL = getEnv(
   "REACT_APP_API_BASE_URL",
-  "https://web-production-3f101.up.railway.app"
+  "http://localhost:8000"
 );
 
 export const WS_BASE_URL = getEnv(
   "REACT_APP_WS_URL",
-  "wss://web-production-3f101.up.railway.app"
+  "ws://localhost:3001"
 );
 
 
