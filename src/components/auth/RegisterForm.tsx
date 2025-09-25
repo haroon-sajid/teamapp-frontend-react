@@ -7,7 +7,6 @@ import { Input } from 'components/ui/input';
 import { Label } from 'components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from 'components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'components/ui/card';
-// import { useAuth } from 'contexts/AuthContext';
 import { RegisterCredentials } from 'types';
 import { Eye, EyeOff, Loader2, Shield, User } from 'lucide-react';
 
