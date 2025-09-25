@@ -14,9 +14,9 @@ const RegisterForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const navigate = useNavigate();
-  
+
   const {
     register,
     handleSubmit,
@@ -25,8 +25,8 @@ const RegisterForm: React.FC = () => {
     formState: { errors },
   } = useForm<RegisterCredentials & { confirmPassword: string }>({
     defaultValues: {
-      role: 'member' // Default to member role
-    }
+      role: 'member', // Default to member role
+    },
   });
 
   const password = watch('password');
@@ -37,33 +37,20 @@ const RegisterForm: React.FC = () => {
       setIsLoading(true);
       setError(null);
 
-      // await registerUser({
-      //   email: data.email,
-      //   password: data.password,
-      //   username: data.username,
-      //   role: data.role || 'member',
-      // });
-      // navigate('/dashboard');
-
-
       const response = await apiService.register({
         email: data.email,
         password: data.password,
         username: data.username,
         role: data.role || 'member',
       });
-      
+
       if (response.success) {
-        // Save user in AuthContext if needed
         navigate('/dashboard');
       } else {
-        throw new Error("Registration failed");
+        throw new Error('Registration failed');
       }
-      
-
-
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Registration failed');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
       setIsLoading(false);
     }
@@ -73,12 +60,8 @@ const RegisterForm: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            Create your account
-          </CardTitle>
-          <CardDescription className="text-center">
-            Join your team and start collaborating
-          </CardDescription>
+          <CardTitle className="text-2xl font-bold text-center">Create your account</CardTitle>
+          <CardDescription className="text-center">Join your team and start collaborating</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -87,7 +70,8 @@ const RegisterForm: React.FC = () => {
                 {error}
               </div>
             )}
-            
+
+            {/* Username */}
             <div className="space-y-2">
               <Label htmlFor="username">Username</Label>
               <Input
@@ -96,10 +80,7 @@ const RegisterForm: React.FC = () => {
                 placeholder="Enter your username"
                 {...register('username', {
                   required: 'Username is required',
-                  minLength: {
-                    value: 3,
-                    message: 'Username must be at least 3 characters',
-                  },
+                  minLength: { value: 3, message: 'Username must be at least 3 characters' },
                   pattern: {
                     value: /^[a-zA-Z0-9_-]+$/,
                     message: 'Username can only contain letters, numbers, underscores, and hyphens',
@@ -107,11 +88,10 @@ const RegisterForm: React.FC = () => {
                 })}
                 className={errors.username ? 'border-red-500' : ''}
               />
-              {errors.username && (
-                <p className="text-sm text-red-600">{errors.username.message}</p>
-              )}
+              {errors.username && <p className="text-sm text-red-600">{errors.username.message}</p>}
             </div>
 
+            {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -120,18 +100,14 @@ const RegisterForm: React.FC = () => {
                 placeholder="Enter your email"
                 {...register('email', {
                   required: 'Email is required',
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Invalid email address',
-                  },
+                  pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: 'Invalid email address' },
                 })}
                 className={errors.email ? 'border-red-500' : ''}
               />
-              {errors.email && (
-                <p className="text-sm text-red-600">{errors.email.message}</p>
-              )}
+              {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
             </div>
 
+            {/* Password */}
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
@@ -141,10 +117,7 @@ const RegisterForm: React.FC = () => {
                   placeholder="Enter your password"
                   {...register('password', {
                     required: 'Password is required',
-                    minLength: {
-                      value: 6,
-                      message: 'Password must be at least 6 characters',
-                    },
+                    minLength: { value: 6, message: 'Password must be at least 6 characters' },
                   })}
                   className={errors.password ? 'border-red-500 pr-10' : 'pr-10'}
                 />
@@ -153,18 +126,13 @@ const RegisterForm: React.FC = () => {
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-gray-400" />
-                  ) : (
-                    <Eye className="h-4 w-4 text-gray-400" />
-                  )}
+                  {showPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
                 </button>
               </div>
-              {errors.password && (
-                <p className="text-sm text-red-600">{errors.password.message}</p>
-              )}
+              {errors.password && <p className="text-sm text-red-600">{errors.password.message}</p>}
             </div>
 
+            {/* Confirm Password */}
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <Input
@@ -173,22 +141,17 @@ const RegisterForm: React.FC = () => {
                 placeholder="Confirm your password"
                 {...register('confirmPassword', {
                   required: 'Please confirm your password',
-                  validate: (value) =>
-                    value === password || 'Passwords do not match',
+                  validate: (value) => value === password || 'Passwords do not match',
                 })}
                 className={errors.confirmPassword ? 'border-red-500' : ''}
               />
-              {errors.confirmPassword && (
-                <p className="text-sm text-red-600">{errors.confirmPassword.message}</p>
-              )}
+              {errors.confirmPassword && <p className="text-sm text-red-600">{errors.confirmPassword.message}</p>}
             </div>
 
+            {/* Account Type */}
             <div className="space-y-2">
               <Label htmlFor="role">Account Type</Label>
-              <Select
-                value={role}
-                onValueChange={(value) => setValue('role', value as 'admin' | 'member')}
-              >
+              <Select value={role} onValueChange={(value) => setValue('role', value as 'admin' | 'member')}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select account type" />
                 </SelectTrigger>
@@ -214,18 +177,14 @@ const RegisterForm: React.FC = () => {
                 </SelectContent>
               </Select>
               <p className="text-xs text-gray-500">
-                {role === 'admin' 
+                {role === 'admin'
                   ? 'Administrators can assign tasks to others, manage settings, and have full team access.'
-                  : 'Members can create tasks, assign them to themselves, and collaborate with the team.'
-                }
+                  : 'Members can create tasks, assign them to themselves, and collaborate with the team.'}
               </p>
             </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
+            {/* Submit */}
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -240,10 +199,7 @@ const RegisterForm: React.FC = () => {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               Already have an account?{' '}
-              <Link
-                to="/login"
-                className="font-medium text-primary hover:text-primary/80"
-              >
+              <Link to="/login" className="font-medium text-primary hover:text-primary/80">
                 Sign in
               </Link>
             </p>
