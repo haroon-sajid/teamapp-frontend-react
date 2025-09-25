@@ -12,6 +12,7 @@ import {
   TeamMember
 } from 'types';
 import { STORAGE_KEYS, API_BASE_URL } from "utils/constants";
+import { WS_BASE_URL } from "utils/constants";
 
 
 class ApiService {
@@ -425,3 +426,21 @@ class ApiService {
 }
 
 export const apiService = new ApiService();
+
+// Expose configuration logger for App startup
+export function logApiConfiguration(): void {
+  try {
+    // eslint-disable-next-line no-console
+    console.log('\ud83d\udd27 API Configuration:');
+    // eslint-disable-next-line no-console
+    console.log('  HTTP API URL:', API_BASE_URL);
+    // eslint-disable-next-line no-console
+    console.log('  WebSocket URL:', WS_BASE_URL);
+    // eslint-disable-next-line no-console
+    console.log('  Environment:', process.env.NODE_ENV);
+    // eslint-disable-next-line no-console
+    console.log('  REACT_APP_API_BASE_URL:', (process.env as any)?.REACT_APP_API_BASE_URL);
+  } catch (_) {
+    // noop
+  }
+}
