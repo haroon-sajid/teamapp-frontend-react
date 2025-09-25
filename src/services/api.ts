@@ -71,7 +71,7 @@ class ApiService {
           }
         }
 
-        const message = isJson ? this.extractErrorMessage(raw) : String(raw);
+        const message = isJson ? (raw.message || raw.error || 'Request failed') : String(raw);
         throw new Error(message);
       }
 
@@ -82,51 +82,7 @@ class ApiService {
     }
   }
 
-  private extractErrorMessage(raw: any): string {
-    try {
-      if (!raw) return 'Request failed';
-
-      // Preferred backend structure: { error, message, field }
-      if (typeof raw === 'object') {
-        if (typeof raw.message === 'string' && raw.message.trim().length > 0) {
-          return raw.message;
-        }
-        if (typeof raw.error === 'string' && raw.error.trim().length > 0) {
-          return raw.error;
-        }
-
-        // FastAPI validation style: { detail: string | Array<{ msg, loc, type }> }
-        if (raw.detail) {
-          if (typeof raw.detail === 'string') {
-            return raw.detail;
-          }
-          if (Array.isArray(raw.detail) && raw.detail.length > 0) {
-            const first = raw.detail[0];
-            if (first && typeof first === 'object') {
-              if (typeof first.message === 'string') return first.message;
-              if (typeof first.msg === 'string') return first.msg;
-            }
-            // Fallback: stringify first detail
-            return String(first);
-          }
-        }
-
-        // Some APIs nest error info
-        if (raw.errors) {
-          if (typeof raw.errors === 'string') return raw.errors;
-          if (Array.isArray(raw.errors) && raw.errors.length > 0) {
-            const m = raw.errors.find((e: any) => typeof e === 'string');
-            if (m) return m;
-          }
-        }
-      }
-
-      // Last resort: stringify
-      return typeof raw === 'string' ? raw : 'Request failed';
-    } catch (_) {
-      return 'Request failed';
-    }
-  }
+  
 
   private async refreshTokens(): Promise<boolean> {
     if (this.isRefreshing) {
