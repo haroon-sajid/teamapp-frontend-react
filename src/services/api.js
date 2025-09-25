@@ -80,6 +80,7 @@ class ApiService {
         ...(token && !skipAuth && { Authorization: `Bearer ${token}` }),
         ...options.headers,
       },
+      credentials: 'include', // Include credentials for CORS
       ...options,
     };
 
