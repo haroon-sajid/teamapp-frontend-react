@@ -410,15 +410,15 @@ class ApiService {
         return projects[0].id;
       }
 
-      // Get available teams
+      // Get available teams (user must belong to at least one)
       const teamsRes = await this.request<any[]>('/teams');
       const teams = (teamsRes.data || []) as any[];
-      
+
       if (teams.length === 0) {
-        throw new Error('No teams available. Please create a team first or contact an administrator.');
+        throw new Error('No teams available. Please create or join a team first.');
       }
 
-      // Create a default project under the first available team
+      // Prefer a team that the user is already a member of (list endpoint is already filtered)
       const teamId = teams[0].id;
       const projectPayload = { 
         name: 'My Board', 
@@ -434,8 +434,13 @@ class ApiService {
       const id = (created.data as any).id;
       localStorage.setItem(key, String(id));
       return id;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to get or create default project:', error);
+      // Surface permission error message from backend when available
+      const message = (error && error.message) ? String(error.message) : 'Unable to create or access projects.';
+      if (message.toLowerCase().includes('access') || message.includes('403')) {
+        throw new Error('You do not have access to the selected team. Please switch or join a team.');
+      }
       throw new Error('Unable to create or access projects. Please ensure you have access to a team.');
     }
   }
