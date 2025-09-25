@@ -117,7 +117,7 @@ const RegisterForm: React.FC = () => {
                   placeholder="Enter your password"
                   {...register('password', {
                     required: 'Password is required',
-                    minLength: { value: 6, message: 'Password must be at least 6 characters' },
+                    minLength: { value: 6, message: 'Password must be at least 8 characters' },
                   })}
                   className={errors.password ? 'border-red-500 pr-10' : 'pr-10'}
                 />

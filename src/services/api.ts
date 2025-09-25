@@ -487,7 +487,7 @@ class ApiService {
   }
 }
 
-// ✅ Place helper here, outside the class but before apiService export
+//  Place helper here, outside the class but before apiService export
 export function extractErrorMessage(error: any): string {
   try {
     if (error?.response?.data?.message) return error.response.data.message;
@@ -505,7 +505,7 @@ export const apiService = new ApiService();
 // Expose configuration logger for App startup
 export function logApiConfiguration(): void {
   try {
-    console.log('🔧 API Configuration:');
+    console.log(' API Configuration:');
     console.log('  HTTP API URL:', API_BASE_URL);
     console.log('  WebSocket URL:', WS_BASE_URL);
     console.log('  Environment:', process.env.NODE_ENV);

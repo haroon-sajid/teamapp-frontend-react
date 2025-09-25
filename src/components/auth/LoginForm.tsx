@@ -85,8 +85,8 @@ const LoginForm: React.FC = () => {
                   {...register('password', {
                     required: 'Password is required',
                     minLength: {
-                      value: 6,
-                      message: 'Password must be at least 6 characters',
+                      value: 8,
+                      message: 'Password must contain at least 8 characters, including at least one digit',
                     },
                   })}
                   className={errors.password ? 'border-red-500 pr-10' : 'pr-10'}
