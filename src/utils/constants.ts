@@ -13,13 +13,8 @@ export const API_BASE_URL = getEnv(
     : "https://teamapp-backend-python-1.onrender.com"
 );
 
-// WebSocket Configuration - Node.js Backend (for real-time events only)
-export const WS_BASE_URL = getEnv(
-  "REACT_APP_WS_URL",
-  process.env.NODE_ENV === 'development' 
-    ? "ws://localhost:3001" 
-    : "wss://web-production-3f101.up.railway.app"
-);
+// WebSocket Configuration - Disabled (using Python FastAPI backend only)
+export const WS_BASE_URL = "";
 
 
 export const KANBAN_COLUMNS = [

@@ -269,8 +269,6 @@ class ApiService {
       status: this.mapStatusToApi(taskData.status || 'To Do'),
       project_id: projectId,
       assignee_id: taskData.assigneeId ? Number(taskData.assigneeId) : null,
-      priority: taskData.priority || 'Medium',
-      due_date: taskData.dueDate || null,
     };
     const res = await this.request<any>('/tasks/', {
       method: 'POST',
@@ -398,7 +396,7 @@ class ApiService {
     const teamsRes = await this.request<any[]>('/teams');
     const teams = (teamsRes.data || []) as any[];
     const teamId = teams[0]?.id;
-    const projectPayload: any = teamId ? { name: 'My Board', description: 'Default project', teamId } : { name: 'My Board', description: 'Default project', teamId: 1 };
+    const projectPayload: any = teamId ? { name: 'My Board', description: 'Default project', team_id: teamId } : { name: 'My Board', description: 'Default project', team_id: 1 };
     const created = await this.request<any>('/projects/', {
       method: 'POST',
       body: JSON.stringify(projectPayload),
@@ -416,7 +414,7 @@ class ApiService {
   async createProject(data: { name: string; description?: string; teamId: number }): Promise<ApiResponse<any>> {
     return this.request('/projects/', {
       method: 'POST',
-      body: JSON.stringify({ name: data.name, description: data.description ?? null, teamId: data.teamId }),
+      body: JSON.stringify({ name: data.name, description: data.description ?? null, team_id: data.teamId }),
     });
   }
 

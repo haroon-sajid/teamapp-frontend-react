@@ -6,7 +6,7 @@ import Header from 'components/layout/Header';
 import KanbanBoard from 'components/kanban/KanbanBoard';
 import TaskModal from 'components/tasks/TaskModal';
 import { Task, CreateTaskData, UpdateTaskData, Team } from 'types';
-import { apiService } from 'services/api.js';
+import { apiService } from 'services/api';
 import { USER_ROLES } from 'utils/constants';
 import { Loader2, AlertCircle } from 'lucide-react';
 

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Task, CreateTaskData, UpdateTaskData, User } from 'types';
-import { apiService } from 'services/api.js';
-import { webSocketService } from 'services/websocket.js';
+import { apiService } from 'services/api';
+import { webSocketService } from 'services/websocket';
 import { useAuth } from './AuthContext';
 
 interface TaskContextType {

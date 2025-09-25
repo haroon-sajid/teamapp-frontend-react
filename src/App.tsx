@@ -11,7 +11,7 @@ import Dashboard from 'pages/Dashboard';
 import Settings from 'pages/Settings';
 import Profile from 'pages/Profile';
 import AdminTeams from 'pages/AdminTeams';
-import { logApiConfiguration } from 'services/api.js';
+import { logApiConfiguration } from 'services/api';
 import './index.css';
 
 // Log API configuration on app start
