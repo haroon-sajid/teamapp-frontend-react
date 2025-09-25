@@ -6,9 +6,6 @@
       "use": "@vercel/static-build",
       "config": {
         "distDir": "build"
-      },
-      "env": {
-        "CI": "false"
       }
     }
   ],
@@ -26,6 +23,7 @@
   ],
   "env": {
     "REACT_APP_API_BASE_URL": "https://teamapp-backend-python-1.onrender.com",
-    "REACT_APP_DEBUG": "false"
+    "REACT_APP_DEBUG": "false",
+    "CI": "false"
   }
 }
